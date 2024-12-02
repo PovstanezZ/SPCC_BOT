@@ -1,6 +1,7 @@
 import telebot
 from telegramBot.config import API
 from telegramBot.data_base_code import *
+from telebot import TeleBot, types
 from datetime import datetime
 
 bot = API
@@ -8,6 +9,7 @@ bot = API
 def connect_db():
     conn = sqlite3.connect(dbPath)
     return conn
+
 def create_users_table():
     """Создает таблицу users, если её еще нет."""
     conn = sqlite3.connect(dbPath)
@@ -55,7 +57,13 @@ def start_registration(message):
     else:
         bot.send_message(message.chat.id, "Вы уже зарегистрированы в системе.")
 
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add("Создать сборку", "Сохранённые сборки")
+    bot.send_message(
+        message.chat.id,
+        "Привет! Я помогу подобрать комплектующие. Выберите действие:",
+        reply_markup=keyboard
+    )
+
+
 # Запуск бота
-if __name__ == "__main__":
-    print("Bot is running...")
-    bot.infinity_polling()
