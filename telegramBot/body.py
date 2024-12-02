@@ -1,6 +1,6 @@
 import telebot
 from telegramBot.config import API
-from telegramBot.DataBaseCode import *
+from telegramBot.data_base_code import *
 from datetime import datetime
 
 bot = API
