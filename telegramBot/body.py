@@ -27,20 +27,20 @@ def create_users_table():
     conn.close()
 
 # Создание таблицы для компонентов, если она не существует
-def create_components_table():
-    conn = connect_db()
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS components (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            component_type TEXT NOT NULL,
-            name TEXT NOT NULL,
-            price INTEGER NOT NULL,
-            usage TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+# def create_components_table():
+#     conn = connect_db()
+#     cursor = conn.cursor()
+#     cursor.execute('''
+#         CREATE TABLE IF NOT EXISTS components (
+#             id INTEGER PRIMARY KEY AUTOINCREMENT,
+#             component_type TEXT NOT NULL,
+#             name TEXT NOT NULL,
+#             price INTEGER NOT NULL,
+#             usage TEXT NOT NULL
+#         )
+#     ''')
+#     conn.commit()
+#     conn.close()
 
 # Проверка, зарегистрирован ли пользователь
 def check_user(telegram_id):
@@ -127,4 +127,4 @@ def search_components(message, budget, usage):
 
 # Создание таблиц пользователей и компонентов при первом запуске
 create_users_table()
-create_components_table()
+# create_components_table()

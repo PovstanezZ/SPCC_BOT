@@ -5,165 +5,240 @@ dbPath = os.path.join('D:','\SPCC_BOT','DataBase', 'PCBuild.db')
 conn = sqlite3.connect(dbPath)
 cursor = conn.cursor()
 
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        telegram_id INTEGER NOT NULL UNIQUE,
-        username TEXT,
-        first_name TEXT,
-        last_name TEXT
-    )
-''')
+# Таблица для регистрации пользователей
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    user_id INTEGER PRIMARY KEY,
+    telegram_id INTEGER UNIQUE NOT NULL,
+    username TEXT,
+    first_name TEXT,
+    last_name TEXT
+);
+""")
 
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS builds (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        cpu TEXT,
-        gpu TEXT,
-        ram TEXT,
-        storage TEXT,
-        budget INTEGER,
-        usage TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )
-''')
+# Таблицы для комплектующих
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS processors (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('gaming', 'work', 'graphics', 'budget')),
+    price INTEGER NOT NULL,
+    cores INTEGER NOT NULL,
+    threads INTEGER NOT NULL,
+    frequency REAL NOT NULL
+);
+""")
 
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS components (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        component_type TEXT NOT NULL,
-        name TEXT NOT NULL,
-        price INTEGER NOT NULL,
-        usage TEXT NOT NULL
-    )
-''')
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS ram (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('gaming', 'work', 'graphics', 'budget')),
+    price INTEGER NOT NULL,
+    capacity INTEGER NOT NULL,
+    speed INTEGER NOT NULL
+);
+""")
 
-cursor.execute('SELECT COUNT(*) FROM components')
-component_count = cursor.fetchone()[0]
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS gpus (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('gaming', 'work', 'graphics', 'budget')),
+    price INTEGER NOT NULL,
+    vram INTEGER NOT NULL
+);
+""")
 
-if component_count == 0:
-    components_data = [
-    # CPU - процессоры
-        ('CPU', 'Intel Core i9-11900K', 45000, 'игры'),
-        ('CPU', 'AMD Ryzen 9 5900X', 40000, 'игры'),
-        ('CPU', 'Intel Core i7-11700K', 35000, 'игры'),
-        ('CPU', 'AMD Ryzen 7 5800X', 30000, 'игры'),
-        ('CPU', 'Intel Core i5-11600K', 25000, 'игры'),
-        ('CPU', 'AMD Ryzen 9 5950X', 60000, 'графика'),
-        ('CPU', 'Intel Core i9-12900K', 50000, 'графика'),
-        ('CPU', 'AMD Ryzen 7 5700G', 30000, 'графика'),
-        ('CPU', 'Intel Core i7-12700K', 40000, 'графика'),
-        ('CPU', 'AMD Ryzen 5 5600G', 20000, 'графика'),
-        ('CPU', 'Intel Core i5-10400F', 15000, 'офис'),
-        ('CPU', 'AMD Ryzen 5 3500', 13000, 'офис'),
-        ('CPU', 'Intel Core i3-10100', 10000, 'офис'),
-        ('CPU', 'AMD Athlon 3000G', 6000, 'офис'),
-        ('CPU', 'Intel Pentium Gold G6400', 5000, 'офис'),
-        ('CPU', 'Intel Core i5-12400', 20000, 'универсальный'),
-        ('CPU', 'AMD Ryzen 5 5600X', 23000, 'универсальный'),
-        ('CPU', 'Intel Core i3-12100', 12000, 'универсальный'),
-        ('CPU', 'AMD Ryzen 3 3100', 10000, 'универсальный'),
-        ('CPU', 'Intel Core i7-10700', 30000, 'универсальный'),
-        ('CPU', 'Intel Celeron G5905', 3000, 'бюджет'),
-        ('CPU', 'AMD A6-9500', 3500, 'бюджет'),
-        ('CPU', 'Intel Pentium G4560', 4500, 'бюджет'),
-        ('CPU', 'AMD Ryzen 3 1200', 8000, 'бюджет'),
-        ('CPU', 'Intel Core i3-9100F', 9000, 'бюджет'),
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS power_supplies (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('gaming', 'work', 'graphics', 'budget')),
+    price INTEGER NOT NULL,
+    wattage INTEGER NOT NULL
+);
+""")
 
-        # GPU - видеокарты
-        ('GPU', 'NVIDIA GeForce RTX 3090', 150000, 'игры'),
-        ('GPU', 'NVIDIA GeForce RTX 3080', 100000, 'игры'),
-        ('GPU', 'AMD Radeon RX 6800 XT', 90000, 'игры'),
-        ('GPU', 'NVIDIA GeForce RTX 3070', 70000, 'игры'),
-        ('GPU', 'AMD Radeon RX 6700 XT', 50000, 'игры'),
-        ('GPU', 'NVIDIA Quadro RTX 5000', 200000, 'графика'),
-        ('GPU', 'AMD Radeon Pro VII', 160000, 'графика'),
-        ('GPU', 'NVIDIA Quadro P2200', 90000, 'графика'),
-        ('GPU', 'AMD FirePro W9100', 180000, 'графика'),
-        ('GPU', 'NVIDIA GeForce RTX 2080 Ti', 80000, 'графика'),
-        ('GPU', 'NVIDIA GeForce GTX 1650', 20000, 'офис'),
-        ('GPU', 'AMD Radeon RX 550', 10000, 'офис'),
-        ('GPU', 'NVIDIA GeForce GT 1030', 8000, 'офис'),
-        ('GPU', 'AMD Radeon Vega 8', 0, 'офис'),
-        ('GPU', 'Intel UHD Graphics 630', 0, 'офис'),
-        ('GPU', 'NVIDIA GeForce RTX 3060', 40000, 'универсальный'),
-        ('GPU', 'AMD Radeon RX 6600', 35000, 'универсальный'),
-        ('GPU', 'NVIDIA GeForce GTX 1660 Super', 30000, 'универсальный'),
-        ('GPU', 'AMD Radeon RX 5600 XT', 25000, 'универсальный'),
-        ('GPU', 'NVIDIA GeForce GTX 1060', 20000, 'универсальный'),
-        ('GPU', 'NVIDIA GeForce GT 710', 4000, 'бюджет'),
-        ('GPU', 'AMD Radeon R5 230', 3000, 'бюджет'),
-        ('GPU', 'NVIDIA GeForce GTX 1050 Ti', 12000, 'бюджет'),
-        ('GPU', 'AMD Radeon RX 460', 7000, 'бюджет'),
-        ('GPU', 'NVIDIA GeForce GTX 750 Ti', 8000, 'бюджет'),
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS storage (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK(category IN ('gaming', 'work', 'graphics', 'budget')),
+    price INTEGER NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('SSD', 'HDD')),
+    capacity INTEGER NOT NULL
+);
+""")
 
-        # RAM - оперативная память
-        ('RAM', 'Corsair Vengeance LPX 16GB (2 x 8GB)', 8000, 'игры'),
-        ('RAM', 'G.Skill Ripjaws V 32GB (2 x 16GB)', 16000, 'игры'),
-        ('RAM', 'Kingston HyperX Fury 16GB (2 x 8GB)', 8500, 'игры'),
-        ('RAM', 'Crucial Ballistix 16GB (2 x 8GB)', 9000, 'игры'),
-        ('RAM', 'TeamGroup T-Force Vulcan Z 32GB (2 x 16GB)', 17000, 'игры'),
-        ('RAM', 'G.Skill Trident Z Royal 64GB (2 x 32GB)', 40000, 'графика'),
-        ('RAM', 'Corsair Vengeance RGB Pro 64GB (2 x 32GB)', 38000, 'графика'),
-        ('RAM', 'Kingston HyperX Predator 32GB (2 x 16GB)', 18000, 'графика'),
-        ('RAM', 'Crucial Ballistix 64GB (2 x 32GB)', 35000, 'графика'),
-        ('RAM', 'TeamGroup T-Force Delta RGB 32GB (2 x 16GB)', 20000, 'графика'),
-        ('RAM', 'Corsair ValueSelect 8GB (1 x 8GB)', 4000, 'офис'),
-        ('RAM', 'Kingston KVR 8GB (1 x 8GB)', 3800, 'офис'),
-        ('RAM', 'TeamGroup Elite 8GB (1 x 8GB)', 3500, 'офис'),
-        ('RAM', 'Crucial Basics 8GB (1 x 8GB)', 3300, 'офис'),
-        ('RAM', 'ADATA Premier 4GB (1 x 4GB)', 2000, 'офис'),
-        ('RAM', 'Corsair Vengeance LPX 32GB (2 x 16GB)', 16000, 'универсальный'),
-        ('RAM', 'G.Skill Ripjaws V 16GB (2 x 8GB)', 9000, 'универсальный'),
-        ('RAM', 'Kingston Fury 32GB (2 x 16GB)', 15000, 'универсальный'),
-        ('RAM', 'TeamGroup T-Force Dark 16GB (2 x 8GB)', 8500, 'универсальный'),
-        ('RAM', 'Crucial Ballistix 32GB (2 x 16GB)', 14000, 'универсальный'),
-        ('RAM', 'TeamGroup Elite 4GB (1 x 4GB)', 1800, 'бюджет'),
-        ('RAM', 'ADATA Premier 2GB (1 x 2GB)', 1000, 'бюджет'),
-        ('RAM', 'Kingston KVR 4GB (1 x 4GB)', 1500, 'бюджет'),
-        ('RAM', 'Crucial Basics 4GB (1 x 4GB)', 1300, 'бюджет'),
-        ('RAM', 'TeamGroup Elite 2GB (1 x 2GB)', 900, 'бюджет'),
+# Таблица для сохранения сборок пользователей
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS user_builds (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    processor_id INTEGER,
+    ram_id INTEGER,
+    gpu_id INTEGER,
+    power_supply_id INTEGER,
+    storage_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(user_id),
+    FOREIGN KEY(processor_id) REFERENCES processors(id),
+    FOREIGN KEY(ram_id) REFERENCES ram(id),
+    FOREIGN KEY(gpu_id) REFERENCES gpus(id),
+    FOREIGN KEY(power_supply_id) REFERENCES power_supplies(id),
+    FOREIGN KEY(storage_id) REFERENCES storage(id)
+);
+""")
 
-        # Storage - накопители
-        ('Storage', 'Samsung 970 Evo Plus 1TB NVMe SSD', 15000, 'игры'),
-        ('Storage', 'Western Digital Black 1TB NVMe SSD', 14000, 'игры'),
-        ('Storage', 'Crucial P5 1TB NVMe SSD', 13000, 'игры'),
-        ('Storage', 'Kingston A2000 1TB NVMe SSD', 12000, 'игры'),
-        ('Storage', 'ADATA XPG SX8200 Pro 1TB NVMe SSD', 11000, 'игры'),
-        ('Storage', 'Samsung 980 Pro 2TB NVMe SSD', 30000, 'графика'),
-        ('Storage', 'Western Digital Black 2TB NVMe SSD', 28000, 'графика'),
-        ('Storage', 'Crucial P5 Plus 2TB NVMe SSD', 27000, 'графика'),
-        ('Storage', 'Kingston KC2500 2TB NVMe SSD', 25000, 'графика'),
-        ('Storage', 'Sabrent Rocket 4TB NVMe SSD', 40000, 'графика'),
-        ('Storage', 'Kingston A400 240GB SSD', 3000, 'офис'),
-        ('Storage', 'Crucial BX500 240GB SSD', 2500, 'офис'),
-        ('Storage', 'Western Digital Blue 500GB SSD', 4000, 'офис'),
-        ('Storage', 'ADATA SU650 240GB SSD', 2800, 'офис'),
-        ('Storage', 'Samsung 860 Evo 500GB SSD', 5000, 'офис'),
-        ('Storage', 'Samsung 970 Evo Plus 500GB NVMe SSD', 8000, 'универсальный'),
-        ('Storage', 'Crucial P5 500GB NVMe SSD', 7000, 'универсальный'),
-        ('Storage', 'Western Digital Blue 1TB SSD', 6000, 'универсальный'),
-        ('Storage', 'Kingston A2000 500GB NVMe SSD', 7500, 'универсальный'),
-        ('Storage', 'ADATA XPG SX8200 Pro 500GB NVMe SSD', 6500, 'универсальный'),
-        ('Storage', 'Western Digital Blue 1TB HDD', 3000, 'бюджет'),
-        ('Storage', 'Seagate Barracuda 1TB HDD', 3500, 'бюджет'),
-        ('Storage', 'Toshiba P300 1TB HDD', 3200, 'бюджет'),
-        ('Storage', 'Western Digital Green 240GB SSD', 2000, 'бюджет'),
-        ('Storage', 'Crucial BX500 120GB SSD', 1500, 'бюджет')
+# Заполнение таблиц данными
+# Расширенные данные для заполнения
+components = {
+    "processors": [
+        ("Ryzen 5 5600X", "gaming", 18900, 6, 12, 4.6),
+        ("Intel i5-12400", "work", 17500, 6, 12, 4.4),
+        ("Ryzen 9 5900X", "graphics", 49900, 12, 24, 4.8),
+        ("Intel i3-10100", "budget", 9500, 4, 8, 4.1),
+        ("Ryzen 7 5800X", "gaming", 26000, 8, 16, 4.7),
+        ("Intel i7-12700K", "work", 32000, 12, 20, 5.0),
+        ("Ryzen 3 3100", "budget", 6700, 4, 8, 3.9),
+        ("Intel i9-12900K", "graphics", 54000, 16, 24, 5.2),
+        ("Ryzen 7 7700X", "gaming", 30000, 8, 16, 4.5),
+        ("Intel i5-13600KF", "work", 27000, 14, 20, 5.1),
+        ("Ryzen 9 7950X", "graphics", 73000, 16, 32, 5.7),
+        ("Intel i3-13100F", "budget", 11000, 4, 8, 4.5),
+        ("Ryzen 5 7600", "gaming", 21000, 6, 12, 5.0),
+        ("Intel i7-13700", "work", 40000, 16, 24, 5.4),
+        ("Ryzen 9 7900", "graphics", 60000, 12, 24, 5.6),
+        ("Intel Pentium Gold G7400", "budget", 4700, 2, 4, 3.7),
+        ("Ryzen Threadripper 3960X", "graphics", 145000, 24, 48, 4.5),
+        ("Intel i9-11900K", "work", 42000, 8, 16, 5.3),
+        ("Ryzen 5 5600G", "budget", 15000, 6, 12, 4.4),
+        ("Intel Celeron G5905", "budget", 4300, 2, 2, 3.5),
+    ],
+    "ram": [
+        ("Corsair Vengeance 16GB 3200MHz", "gaming", 6200, 16, 3200),
+        ("Crucial 16GB 2666MHz", "work", 5700, 16, 2666),
+        ("G.Skill Trident Z 32GB 3600MHz", "graphics", 14000, 32, 3600),
+        ("Kingston ValueRAM 8GB 2400MHz", "budget", 2200, 8, 2400),
+        ("HyperX Fury 16GB 3200MHz", "gaming", 6800, 16, 3200),
+        ("TeamGroup Elite 8GB 2666MHz", "work", 2100, 8, 2666),
+        ("Patriot Signature 4GB 2400MHz", "budget", 1400, 4, 2400),
+        ("Corsair Dominator Platinum 32GB 4000MHz", "graphics", 23000, 32, 4000),
+        ("ADATA XPG 16GB 3000MHz", "gaming", 5000, 16, 3000),
+        ("Crucial Ballistix 16GB 3200MHz", "work", 6500, 16, 3200),
+        ("Kingston HyperX Predator 32GB 3600MHz", "graphics", 15000, 32, 3600),
+        ("TeamGroup T-Force Vulcan 8GB 3000MHz", "budget", 3000, 8, 3000),
+        ("G.Skill Ripjaws V 16GB 3600MHz", "gaming", 7000, 16, 3600),
+        ("Samsung 8GB 2666MHz", "work", 2500, 8, 2666),
+        ("Crucial 32GB 2400MHz", "graphics", 12000, 32, 2400),
+        ("Patriot Viper Steel 16GB 3600MHz", "gaming", 7400, 16, 3600),
+        ("ADATA Premier 8GB 2400MHz", "budget", 1900, 8, 2400),
+        ("Kingston Fury Beast 32GB 3200MHz", "graphics", 16000, 32, 3200),
+        ("HyperX Impact 16GB 2666MHz", "work", 7200, 16, 2666),
+        ("TeamGroup Delta RGB 16GB 3200MHz", "gaming", 7800, 16, 3200),
+    ],
+    "gpus": [
+        ("NVIDIA RTX 3060", "gaming", 32000, 12),
+        ("AMD Radeon RX 6600", "work", 27000, 8),
+        ("NVIDIA RTX 3090", "graphics", 145000, 24),
+        ("GTX 1650", "budget", 12500, 4),
+        ("AMD RX 580", "budget", 14500, 8),
+        ("NVIDIA GTX 1660 Super", "gaming", 21000, 6),
+        ("NVIDIA RTX 3050", "work", 24000, 8),
+        ("AMD RX 6700 XT", "graphics", 47000, 12),
+        ("NVIDIA RTX 3070 Ti", "gaming", 60000, 8),
+        ("AMD RX 5600 XT", "work", 35000, 6),
+        ("NVIDIA RTX 4080", "graphics", 180000, 16),
+        ("AMD RX Vega 64", "budget", 20000, 8),
+        ("NVIDIA GTX 1080 Ti", "gaming", 27000, 11),
+        ("AMD RX 590", "work", 17000, 8),
+        ("NVIDIA RTX 3060 Ti", "graphics", 43000, 8),
+        ("AMD RX 550", "budget", 8500, 2),
+        ("NVIDIA RTX 4050", "gaming", 25000, 8),
+        ("AMD RX 6400", "work", 22000, 4),
+        ("NVIDIA RTX 3090 Ti", "graphics", 165000, 24),
+        ("AMD RX 6600 XT", "gaming", 36000, 8),
+    ],
+    "power_supplies": [
+        ("Corsair RM750x", "gaming", 9800, 750),
+        ("Cooler Master MWE 550", "work", 5200, 550),
+        ("EVGA SuperNOVA 1000", "graphics", 18500, 1000),
+        ("Thermaltake Litepower 450", "budget", 2700, 450),
+        ("Seasonic Focus GX-750", "gaming", 8800, 750),
+        ("Deepcool DQ750-M", "work", 6900, 750),
+        ("Chieftec Proton 650W", "budget", 5000, 650),
+        ("Cooler Master V850", "graphics", 12000, 850),
+        ("Corsair CX550M", "budget", 4300, 550),
+        ("FSP Hyper 700W", "gaming", 6200, 700),
+        ("Be Quiet! Straight Power 11 650W", "work", 8700, 650),
+        ("Gigabyte P750GM", "graphics", 9600, 750),
+        ("Aerocool KCAS 700W", "budget", 4900, 700),
+        ("NZXT C650", "gaming", 7900, 650),
+        ("XPG Core Reactor 750W", "work", 7400, 750),
+        ("Zalman WattBit 600W", "budget", 3300, 600),
+        ("Corsair HX1000i", "graphics", 15800, 1000),
+        ("Thermaltake Toughpower GX1 600W", "budget", 4400, 600),
+        ("Deepcool DA700", "gaming", 6500, 700),
+        ("FSP Raider II 750W", "work", 8100, 750),
+    ],
+        "storage": [
+        ("Samsung 970 EVO 1TB", "gaming", 9800, "SSD", 1000),
+        ("WD Blue 500GB", "work", 4500, "HDD", 500),
+        ("Seagate Barracuda 2TB", "graphics", 7400, "HDD", 2000),
+        ("Kingston A400 240GB", "budget", 1800, "SSD", 240),
+        ("Samsung 980 Pro 2TB", "gaming", 18000, "SSD", 2000),
+        ("Crucial MX500 1TB", "work", 7800, "SSD", 1000),
+        ("WD Black SN850 1TB", "graphics", 13500, "SSD", 1000),
+        ("Seagate FireCuda 510 1TB", "gaming", 9600, "SSD", 1000),
+        ("ADATA SU650 480GB", "budget", 3200, "SSD", 480),
+        ("Samsung T7 500GB", "work", 6500, "SSD", 500),
+        ("Crucial P3 2TB", "graphics", 14500, "SSD", 2000),
+        ("Toshiba P300 1TB", "budget", 3800, "HDD", 1000),
+        ("Seagate IronWolf 4TB", "work", 11000, "HDD", 4000),
+        ("WD Red Plus 6TB", "graphics", 19500, "HDD", 6000),
+        ("Kingston NV1 1TB", "gaming", 8500, "SSD", 1000),
+        ("Patriot Burst 240GB", "budget", 2100, "SSD", 240),
+        ("WD Blue 2TB", "work", 8700, "HDD", 2000),
+        ("Samsung 870 QVO 4TB", "graphics", 24500, "SSD", 4000),
+        ("Silicon Power A55 512GB", "budget", 3500, "SSD", 512),
+        ("Seagate Expansion 8TB", "work", 22000, "HDD", 8000),
     ]
+}
 
-    cursor.executemany('''
-        INSERT INTO components (component_type, name, price, usage) 
-        VALUES (?, ?, ?, ?)
-    ''', components_data)
 
-    print("Таблица заполнена данными!")
-else:
-    print("Таблица уже содержит данные, пропуск заполнения.")
+# Вставка данных
+insert_queries = {
+    "processors": "INSERT INTO processors (name, category, price, cores, threads, frequency) VALUES (?, ?, ?, ?, ?, ?)",
+    "ram": "INSERT INTO ram (name, category, price, capacity, speed) VALUES (?, ?, ?, ?, ?)",
+    "gpus": "INSERT INTO gpus (name, category, price, vram) VALUES (?, ?, ?, ?)",
+    "power_supplies": "INSERT INTO power_supplies (name, category, price, wattage) VALUES (?, ?, ?, ?)",
+    "storage": "INSERT INTO storage (name, category, price, type, capacity) VALUES (?, ?, ?, ?, ?)",
+}
+# Функция для проверки существования записи
+def check_and_insert(table, query, data, unique_field):
+    # Создаем запрос для проверки существования записи
+    check_query = f"SELECT 1 FROM {table} WHERE {unique_field} = ? LIMIT 1"
+    cursor.execute(check_query, (data[0],))  # Предполагаем, что первое поле (например, name) уникально
+    if not cursor.fetchone():  # Если запись не найдена
+        cursor.execute(query, data)  # Добавляем новую запись
+        print(f"Added to {table}: {data[0]}")
+    else:
+        print(f"Skipped duplicate in {table}: {data[0]}")
 
+# Вставка данных с проверкой
+insert_queries = {
+    "processors": "INSERT INTO processors (name, category, price, cores, threads, frequency) VALUES (?, ?, ?, ?, ?, ?)",
+    "ram": "INSERT INTO ram (name, category, price, capacity, speed) VALUES (?, ?, ?, ?, ?)",
+    "gpus": "INSERT INTO gpus (name, category, price, vram) VALUES (?, ?, ?, ?)",
+    "power_supplies": "INSERT INTO power_supplies (name, category, price, wattage) VALUES (?, ?, ?, ?)",
+    "storage": "INSERT INTO storage (name, category, price, type, capacity) VALUES (?, ?, ?, ?, ?)",
+}
+
+# Цикл для добавления данных
+for table, query in insert_queries.items():
+    for item in components[table]:
+        check_and_insert(table, query, item, "name")  # Указываем уникальное поле "name"
+
+# Сохраняем изменения и закрываем соединение
 conn.commit()
 conn.close()
-
-print(f'База данных создана по пути: {dbPath}')
