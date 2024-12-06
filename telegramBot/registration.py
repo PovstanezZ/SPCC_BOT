@@ -57,12 +57,6 @@ def start_registration(message):
     else:
         bot.send_message(message.chat.id, "Вы уже зарегистрированы в системе.")
 
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add("Создать сборку", "Сохранённые сборки")
-    bot.send_message(
-        message.chat.id,
-        "Привет! Я помогу подобрать комплектующие. Выберите действие:",
-        reply_markup=keyboard
-    )
+
 # Запуск бота
-bot.polling()
+# bot.polling()

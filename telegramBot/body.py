@@ -36,6 +36,17 @@ def delete_unsaved_build(user_id):
         del active_builds[user_id]
         bot.send_message(user_id, "Ваша сборка была удалена, так как не была сохранена в течение 15 минут.")
 
+
+@bot.message_handler(func=lambda message: message.text == "")
+def ask_budget(message):
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add("Создать сборку", "Сохранённые сборки")
+    bot.send_message(
+        message.chat.id,
+        "Привет! Я помогу подобрать комплектующие. Выберите действие:",
+        reply_markup=keyboard
+    )
+
 # Создание сборки
 @bot.message_handler(func=lambda message: message.text == "Создать сборку")
 def ask_budget(message):
@@ -197,3 +208,4 @@ def handle_save_choice(message):
         bot.send_message(message.chat.id, "Сборка не сохранена.")
 
     del active_builds[user_id]
+bot.polling()
