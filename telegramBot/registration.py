@@ -3,12 +3,15 @@ from telebot import types
 
 from telegramBot.config import API
 from telegramBot.data_base_code import *
+from telegramBot.buttons import *
 
 bot = API
+
 
 def connect_db():
     conn = sqlite3.connect(dbPath)
     return conn
+
 
 def create_users_table():
     """Создает таблицу users, если её еще нет."""
@@ -25,7 +28,9 @@ def create_users_table():
     conn.commit()
     conn.close()
 
+
 create_users_table()  # Убедимся, что таблица существует
+
 
 def register_user(telegram_id, username, first_name, last_name):
     """Добавляет пользователя в базу данных, если он еще не зарегистрирован."""
@@ -44,7 +49,18 @@ def register_user(telegram_id, username, first_name, last_name):
         return False  # Пользователь уже зарегистрирован
     conn.close()
 
-@bot.message_handler(commands=["start", "register"])
+# def hui():
+#     keyboard_register = types.InlineKeyboardMarkup()
+#
+#         # Кнопки
+#     add_build_button = types.InlineKeyboardButton(text="Создать сборку", callback_data="add_new_build")
+#     saved_build_button = types.InlineKeyboardButton(text="Посмотреть сохранённые", callback_data="saved_builds")
+#
+#     # Inline клавиатура
+#     keyboard_register.add(add_build_button)
+#     keyboard_register.add(saved_build_button)
+
+@bot.message_handler(commands=["register"])
 def start_registration(message):
     """Обработчик команды /start или /register."""
     user_id = message.from_user.id
@@ -53,10 +69,48 @@ def start_registration(message):
     last_name = message.from_user.last_name or "No last name"
 
     if register_user(user_id, username, first_name, last_name):
+        # keyboard_register = types.InlineKeyboardMarkup()
+        #
+        # # Кнопки
+        # add_build_button = types.InlineKeyboardButton(text="Создать сборку", callback_data="add_new_build")
+        # saved_build_button = types.InlineKeyboardButton(text="Посмотреть сохранённые", callback_data="saved_builds")
+        #
+        # # Inline клавиатура
+        # keyboard_register.add(add_build_button)
+        # keyboard_register.add(saved_build_button)
+        # hui()
+
+        # Отправляем сообщение с клавиатурой
         bot.send_message(message.chat.id, "Вы успешно зарегистрированы!")
+        # bot.send_message(message.chat.id, "Предлогаю вам выбрать действия из перечисленных ниже:",
+        #                  reply_markup=hui.keyboard_register)
     else:
+        # keyboard_register = types.InlineKeyboardMarkup()
+        #
+        # # Кнопки
+        # add_build_button = types.InlineKeyboardButton(text="Создать сборку", callback_data="addnewbuild")
+        # saved_build_button = types.InlineKeyboardButton(text="Посмотреть сохранённые", callback_data="savedbuilds")
+        #
+        # # Inline клавиатура
+        # keyboard_register.add(add_build_button)
+        # keyboard_register.add(saved_build_button)
+        # print("0")
         bot.send_message(message.chat.id, "Вы уже зарегистрированы в системе.")
+        # print("01")
+        # bot.send_message(message.chat.id, "Предлогаю вам выбрать действия из перечисленных ниже:",
+        #                  reply_markup=keyboard_register)
+        # print("011")
 
-
-# Запуск бота
-# bot.polling()
+# @bot.callback_query_handler(func=lambda call: True)
+# def callback_handler(call):
+#     print(f"Received callback: {call.data}")
+#     if call.data == "addnewbuild":
+#         print("1")
+#         bot.send_message(call.message.chat.id, "Вы нажали кнопку 'Создать сборку'!")
+#         print("11")
+#     elif call.data == "savedbuilds":
+#         print("2")
+#         bot.send_message(call.message.chat.id, "Вы нажали кнопку 'Посмотреть сохранённые'!")
+#         print("22")
+#     else:
+#         print(f"Unexpected callback_data: {call.data}")

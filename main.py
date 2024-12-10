@@ -1,4 +1,4 @@
-from telegramBot.config import *
-from telegramBot.body import *
+# from telegramBot.buttons import *
+from telegramBot.registration import *
 
 bot.infinity_polling()
